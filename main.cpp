@@ -35,18 +35,18 @@ std::vector<Fret*> getRandomNextSequence(Fret* fret) {
 }
 
 
-void printFrets(Fret* root) {
-    std::vector<Fret*> nexts = getRandomNextSequence(root);
-
-    std::cout << root << " - " << root->noteData->noteName << " > " << root->noteData->octave << std::endl;
-    root->visited = true;
-
-    for (Fret* next : nexts) {
-        if (next != nullptr && !next->visited) {
-            printFrets(next);
-        }
-    }
-}
+//void printFrets(Fret* root) {
+//    std::vector<Fret*> nexts = getRandomNextSequence(root);
+//
+//    std::cout << root << " - " << root->noteData->noteName << " > " << root->noteData->octave << std::endl;
+//    root->visited = true;
+//
+//    for (Fret* next : nexts) {
+//        if (next != nullptr && !next->visited) {
+//            printFrets(next);
+//        }
+//    }
+//}
 
 void findChord(Fret* root, std::vector<int>& chordNotes, std::vector<int>& availableStrings) {
     if (availableStrings.empty()) {return;}
@@ -85,9 +85,45 @@ void findChord(Fret* root, std::vector<int>& chordNotes, std::vector<int>& avail
             findChord(next, chordNotes, availableStrings);
         }
     }
-
-
 }
+
+void locateNotes(Fret* root, std::vector<int>& chordNotes, std::vector<int>& availableStrings, std::vector<std::pair<int, int>>& noteLocations) {
+    if (availableStrings.empty()) {return;}
+
+    for (int i = 0; i < availableStrings.size(); i++) {
+        if (root->noteData->noteName == chordNotes[i]) {
+            for (int j = 0; j < availableStrings.size(); j++) {
+                if (root->column == availableStrings[j]) {
+
+                    noteLocations.emplace_back(std::make_pair(root->row, root->column));
+
+                    chordNotes.erase(chordNotes.begin() + i);
+                    availableStrings.erase(availableStrings.begin() + j);
+
+//                    std::cout << "available notes: ";
+//                    for (int chordNote: chordNotes) {
+//                        std::cout << chordNote << ", ";
+//                    }
+//                    std::cout << '\n';
+//                    std::cout << "available strings: ";
+//                    for (int string: availableStrings) {
+//                        std::cout << string << ", ";
+//                    }
+//                    std::cout << '\n';
+                }
+            }
+        }
+    }
+
+    std::vector<Fret*> nexts = getRandomNextSequence(root);
+    for (Fret* next : nexts) {
+        if (next != nullptr) {
+            locateNotes(next, chordNotes, availableStrings, noteLocations);
+        }
+    }
+}
+
+
 
 
 int main() {
@@ -107,11 +143,25 @@ int main() {
 
     std::vector<std::vector<Fret*>> visited(fretBoard.numRows, std::vector<Fret*>(fretBoard.numColumns));
 
-    Fret* root = fretBoard.constructFret(0, 0, visited);
+    Fret* root = fretBoard.linkFrets(0, 0, visited);
 
-    std::vector<int> chordNotes = {C, E, G, B, D, C};
+    std::vector<int> chordNotes = {F, A, C, F, Eb, C};
     std::vector<int> availableStrings; for (int i = 0; i < fretBoard.numColumns; i++) {availableStrings.push_back(i);}
-    findChord(root, chordNotes, availableStrings);
+//    findChord(root, chordNotes, availableStrings);
+
+    std::vector<std::pair<int, int>> noteLocations;
+    locateNotes(root, chordNotes, availableStrings, noteLocations);
+
+    for (int i = 0; i < noteLocations.size(); i++)
+        for (int j = 0; j < noteLocations.size() - 1; j++) {
+            if (noteLocations[j].second > noteLocations[j + 1].second) {
+                std::swap(noteLocations[j], noteLocations[j + 1]);
+            }
+        }
+
+    for (std::pair<int, int> location : noteLocations) {
+        std::cout << "Fret: " << location.first << ", " << "String: " << location.second << '\n';
+    }
 
     return 0;
 }

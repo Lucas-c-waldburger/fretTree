@@ -51,7 +51,6 @@ double frequencies[12][9] = {
 };
 
 
-
 struct NoteData {
     int noteName;
     int octave;
@@ -69,16 +68,11 @@ NoteData* createNoteData(int name, int octave) {
 
 struct Fret {
     Fret() = default;
-    Fret(int row, int column, NoteData* noteData) : row{row}, column{column} {
-        this->noteData = noteData;
-    };
+    Fret(int row, int column, NoteData* noteData) : row{row}, column{column} {this->noteData = noteData;};
 
     int row;
     int column;
-
     NoteData* noteData;
-
-    bool visited = false;
 
     Fret* up = nullptr;
     Fret* upLeft = nullptr;
@@ -142,7 +136,7 @@ struct FretBoard {
         }
     }
 
-    Fret* constructFret(int r, int c, std::vector<std::vector<Fret*>>& visited) {
+    Fret* linkFrets(int r, int c, std::vector<std::vector<Fret*>>& visited) {
 
         if ((r >= rows || c >= cols) || (r < 0 || c < 0)) {return nullptr;}
 
@@ -151,17 +145,17 @@ struct FretBoard {
         Fret* newFret = new Fret(r, c, noteDataMatrix[r][c]);
         visited[r][c] = newFret;
 
-        newFret->up = constructFret(r - 1, c, visited);
-        newFret->down = constructFret(r + 1, c, visited);
+        newFret->up = linkFrets(r - 1, c, visited);
+        newFret->down = linkFrets(r + 1, c, visited);
 
-        newFret->left = constructFret(r, c - 1, visited);
-        newFret->right = constructFret(r, c + 1, visited);
+        newFret->left = linkFrets(r, c - 1, visited);
+        newFret->right = linkFrets(r, c + 1, visited);
 
-        newFret->upLeft = constructFret(r - 1, c - 1, visited);
-        newFret->upRight = constructFret(r - 1, c + 1, visited);
+        newFret->upLeft = linkFrets(r - 1, c - 1, visited);
+        newFret->upRight = linkFrets(r - 1, c + 1, visited);
 
-        newFret->downLeft = constructFret(r + 1, c - 1, visited);
-        newFret->downRight = constructFret(r + 1, c + 1, visited);
+        newFret->downLeft = linkFrets(r + 1, c - 1, visited);
+        newFret->downRight = linkFrets(r + 1, c + 1, visited);
 
 
         return newFret;
