@@ -48,16 +48,56 @@ void printFrets(Fret* root) {
     }
 }
 
+void findChord(Fret* root, std::vector<int>& chordNotes, std::vector<int>& availableStrings) {
+    if (availableStrings.empty()) {return;}
+//    std::cout << "current notename: " << root->noteData->noteName << ", " << "current string: " << root->column << '\n';
+
+    for (int i = 0; i < availableStrings.size(); i++) {
+        if (root->noteData->noteName == chordNotes[i]) {
+//            std::cout << "found note!\n";
+            for (int j = 0; j < availableStrings.size(); j++) {
+                if (root->column == availableStrings[j]) {
+//                    std::cout << "found string!\n";
+                    std::cout << '(' << root->row << ", " << root->column << ") - {NAME:" << root->noteData->noteName
+                              << ", OCTAVE:" << root->noteData->octave << "}\n";
+
+                    chordNotes.erase(chordNotes.begin() + i);
+                    availableStrings.erase(availableStrings.begin() + j);
+
+//                    std::cout << "available notes: ";
+//                    for (int chordNote: chordNotes) {
+//                        std::cout << chordNote << ", ";
+//                    }
+//                    std::cout << '\n';
+//                    std::cout << "available strings: ";
+//                    for (int string: availableStrings) {
+//                        std::cout << string << ", ";
+//                    }
+//                    std::cout << '\n';
+                }
+            }
+        }
+    }
+
+    std::vector<Fret*> nexts = getRandomNextSequence(root);
+    for (Fret* next : nexts) {
+        if (next != nullptr) {
+            findChord(next, chordNotes, availableStrings);
+        }
+    }
+
+
+}
 
 
 int main() {
-    std::pair<int, int> openStrings[6] = {
-            std::make_pair<int, int>(E, oct2),
-            std::make_pair<int, int>(A, oct2),
-            std::make_pair<int, int>(D, oct3),
-            std::make_pair<int, int>(G, oct3),
-            std::make_pair<int, int>(B, oct3),
-            std::make_pair<int, int>(E, oct4),
+    NoteData* openStrings[6] = {
+            createNoteData(E, oct2),
+            createNoteData(A, oct2),
+            createNoteData(D, oct3),
+            createNoteData(G, oct3),
+            createNoteData(B, oct3),
+            createNoteData(E, oct4),
     };
 
 
@@ -69,7 +109,9 @@ int main() {
 
     Fret* root = fretBoard.constructFret(0, 0, visited);
 
-    printFrets(root);
+    std::vector<int> chordNotes = {C, E, G, B, D, C};
+    std::vector<int> availableStrings; for (int i = 0; i < fretBoard.numColumns; i++) {availableStrings.push_back(i);}
+    findChord(root, chordNotes, availableStrings);
 
     return 0;
 }

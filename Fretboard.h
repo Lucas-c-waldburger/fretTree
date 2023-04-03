@@ -69,9 +69,8 @@ NoteData* createNoteData(int name, int octave) {
 
 struct Fret {
     Fret() = default;
-    // POSSIBLY GROUP NOTE DATA INTO ITS OWN STRUCT
-    Fret(int row, int column, int noteName, int octave) : row{row}, column{column} {
-        this->noteData = createNoteData(noteName, octave);
+    Fret(int row, int column, NoteData* noteData) : row{row}, column{column} {
+        this->noteData = noteData;
     };
 
     int row;
@@ -101,7 +100,7 @@ struct Fret {
 template <int rows, int cols>
 struct FretBoard {
     FretBoard() = default;
-    FretBoard(std::pair<int, int> openStrings[cols]) {
+    FretBoard(NoteData* openStrings[cols]) {
         this->numRows = rows;
         this->numColumns = cols;
         fillNoteMatrix(openStrings);
@@ -109,24 +108,24 @@ struct FretBoard {
 
     int numRows = 0;
     int numColumns = 0;
-    std::pair<int, int> noteDataMatrix[rows][cols];
+    NoteData* noteDataMatrix[rows][cols];
 
-    void fillNoteMatrix(std::pair<int, int> openStrings[cols]) {
+    void fillNoteMatrix(NoteData* openStrings[cols]) {
         for (int r = 0; r < rows; r++) {
             for (int c = 0; c < cols; c++) {
                 // first column round, fill with values from openStrings
                 if (r == 0) {
-                    noteDataMatrix[r][c] = std::make_pair(openStrings[c].first, openStrings[c].second);
+                    noteDataMatrix[r][c] = openStrings[c];
                 }
                 else {
                     // if the previous note in this row was a B, go to the next octave
-                    if ((noteDataMatrix[r - 1][c].first + 1) % 12 == 0) {
-                        noteDataMatrix[r][c] = std::make_pair((noteDataMatrix[r - 1][c].first + 1) % 12,
-                                                              noteDataMatrix[r - 1][c].second + 1);
+                    if ((noteDataMatrix[r - 1][c]->noteName + 1) % 12 == 0) {
+                        noteDataMatrix[r][c] = createNoteData((noteDataMatrix[r - 1][c]->noteName + 1) % 12,
+                                                              noteDataMatrix[r - 1][c]->octave + 1);
                     }
                     else {
-                        noteDataMatrix[r][c] = std::make_pair((noteDataMatrix[r - 1][c].first + 1) % 12,
-                                                        noteDataMatrix[r - 1][c].second);
+                        noteDataMatrix[r][c] = createNoteData((noteDataMatrix[r - 1][c]->noteName + 1) % 12,
+                                                        noteDataMatrix[r - 1][c]->octave);
                     }
                 }
             }
@@ -137,8 +136,8 @@ struct FretBoard {
         for (int r = 0; r < rows; r++) {
             std::cout << "-------------------------------------" << '\n';
             for (int c = 0; c < cols; c++) {
-                std::cout << "ROW:" << r << '-' << "COL:" << c << "  (" << noteDataMatrix[r][c].first << ", "
-                          << noteDataMatrix[r][c].second << ")" << '\n';
+                std::cout << "ROW:" << r << '-' << "COL:" << c << "  (" << noteDataMatrix[r][c]->noteName << ", "
+                          << noteDataMatrix[r][c]->octave << ")" << '\n';
             }
         }
     }
@@ -149,7 +148,7 @@ struct FretBoard {
 
         if (visited[r][c]) {return visited[r][c];}
 
-        Fret* newFret = new Fret(r, c, noteDataMatrix[r][c].first, noteDataMatrix[r][c].second);
+        Fret* newFret = new Fret(r, c, noteDataMatrix[r][c]);
         visited[r][c] = newFret;
 
         newFret->up = constructFret(r - 1, c, visited);
@@ -178,8 +177,6 @@ struct FretBoard {
     }
 
 };
-
-
 
 
 #endif //FRETTREE_FRETBOARD_H
