@@ -1,0 +1,3 @@
+C:/Users/Lucas/CLionProjects/fretTree/cmake-build-debug/CMakeFiles/fretTree.dir
+C:/Users/Lucas/CLionProjects/fretTree/cmake-build-debug/CMakeFiles/edit_cache.dir
+C:/Users/Lucas/CLionProjects/fretTree/cmake-build-debug/CMakeFiles/rebuild_cache.dir
